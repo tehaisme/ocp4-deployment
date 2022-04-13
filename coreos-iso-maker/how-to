@@ -1,0 +1,146 @@
+1. Setup group_vars/all.yml (with multiple NICs)
+---
+gateway: 192.168.10.x
+gateway2: 192.168.100.x
+netmask: 255.255.255.0
+netmask2: 255.255.255.128
+interface: ens192 (default for vSphere?)
+interface2: ens224 (default for vSphere)
+
+dns: //no more than 3
+  - ((dns1))
+  - ((dns2))
+  - ((dns3))
+
+webserver_url: 192.168.10.2 //from bastion/helper node
+webserver_port: 8080 //from bastion/helper node
+
+# Ignition subpath in http server (optionnal, defaults to nothing)
+webserver_ignition_path: ocpxxx //as per setup in helper / bastion
+
+# Drive to install RHCOS
+# Libvirt - can be vda
+install_drive: sda
+
+# Timeout for selection menu during first boot
+# '-1' for infinite timeout. Default '10'
+boot_timeout: 10
+
+# Chose the binary architecture
+# x86_64 or ppc64le
+arch: "x86_64"
+
+ocp_version: 4.x.z
+iso_checksum: 0e92c3ad698ef68057011f7cc5b9fd07356b8711a55f735aaaexxxxxxxxx 
+iso_name: rhcos-4.x.z-x86_64-live.x86_64.iso 
+...
+
+2. Confirm all IP (including gateway) allowed to communicate each other
+3. For single NIC delete value of gateway2, netmask2, interface2
+4. Setup inventory.yml
+* below inventory.yml file for reference only
+* do not put more than 7 nodes in 1 inventory.yml
+* can separate for control plane and compute nodes but still using inventory.yml file when running the playbook
+* make sure ansible, rsync have been installed in the helper node
+
+---
+all:
+  children:
+    bootstrap:
+      hosts:
+        example-bot.ocp4.th:
+          dhcp: false
+          ipv4: 192.168.10.4
+    
+    master:
+      hosts:
+        example-mas1.ocp4.th:
+          dhcp: false
+          ipv4: 192.168.10.5
+        
+        example-mas2.ocp4.th:
+          dhcp: false
+          ipv4: 192.168.10.6
+        
+        example-mas3.ocp4.th:
+          dhcp: false
+          ipv4: 192.168.10.7
+        
+    worker:
+      hosts:
+        example-wkn1.ocp4.th:
+          dhcp: false
+          ipv4: 192.168.10.11
+
+        example-wkn2.ocp4.th:
+          dhcp: false
+          ipv4: 192.168.10.12
+        
+        example-wkn3.ocp4.th:
+          dhcp: false
+          ipv4: 192.168.10.13
+        
+        example-wkn4.ocp4.th:
+          dhcp: false
+          ipv4: 192.168.10.14
+        
+        example-int1.ocp4.th:
+          dhcp: false
+          ipv4: 192.168.10.21
+        
+        example-int2.ocp4.th:
+          dhcp: false
+          ipv4: 192.168.10.22
+        
+        example-reg1.ocp4.th:
+          dhcp: false
+          ipv4: 192.168.10.23
+
+        example-reg2.ocp4.th:
+          dhcp: false
+          ipv4: 192.168.10.24
+
+        example-mon1.ocp4.th:
+          dhcp: false
+          ipv4: 192.168.10.25
+
+        example-mon2.ocp4.th:
+          dhcp: false
+          ipv4: 192.168.10.26
+
+        example-mon3.ocp4.th:
+          dhcp: false
+          ipv4: 192.168.10.27
+
+        example-mon4.ocp4.th:
+          dhcp: false
+          ipv4: 192.168.10.28
+        
+        example-log1.ocp4.th:
+          dhcp: false
+          ipv4: 192.168.10.29
+
+        example-log2.ocp4.th:
+          dhcp: false
+          ipv4: 192.168.10.30
+        
+        example-log3.ocp4.th:
+          dhcp: false
+          ipv4: 192.168.10.31
+
+        example-exr1.ocp4.th:
+          dhcp: false
+          ipv4: 192.168.100.4
+
+        example-exr2.ocp4.th:
+          dhcp: false
+          ipv4: 192.168.100.5
+
+...
+5. Download RHCOS ISO file (rhcos-4.x.z-x86_64-live.x86_64.iso) and put in /tmp
+6. Run playbook-multi.yml or playbook-single.yml
+* playbook-multi.yml --> for multiple NICs and will create as per total nodes defind in inventory.yml
+* playbook-single.yml --> for single NIC and will create 1 single ISO even put more than 1 nodes in inventory.yml
+7. Check /tmp for new created ISO
+8. Rename new created ISO as per nodes
+9. Ready to upload to vSphere
