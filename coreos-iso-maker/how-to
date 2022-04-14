@@ -1,11 +1,14 @@
+# This is to create ISO (coreOS) with static IP 
+
 1. Setup group_vars/all.yml (with multiple NICs)
+
 ---
 gateway: 192.168.10.x
 gateway2: 192.168.100.x
 netmask: 255.255.255.0
 netmask2: 255.255.255.128
 interface: ens192 (default for vSphere?)
-interface2: ens224 (default for vSphere)
+interface2: ens224 (default for vSphere?)
 
 dns: //no more than 3
   - ((dns1))
@@ -20,7 +23,7 @@ webserver_ignition_path: ocpxxx //as per setup in helper / bastion
 
 # Drive to install RHCOS
 # Libvirt - can be vda
-install_drive: sda
+install_drive: sda (default for vSphere?)
 
 # Timeout for selection menu during first boot
 # '-1' for infinite timeout. Default '10'
@@ -36,12 +39,14 @@ iso_name: rhcos-4.x.z-x86_64-live.x86_64.iso
 ...
 
 2. Confirm all IP (including gateway) allowed to communicate each other
+
 3. For single NIC delete value of gateway2, netmask2, interface2
+
 4. Setup inventory.yml
-* below inventory.yml file for reference only
-* do not put more than 7 nodes in 1 inventory.yml
-* can separate for control plane and compute nodes but still using inventory.yml file when running the playbook
-* make sure ansible, rsync have been installed in the helper node
+# below inventory.yml file for reference only
+# do not put more than 7 nodes in 1 inventory.yml
+# can separate for control plane and compute nodes but still using inventory.yml file when running the playbook
+# make sure ansible, rsync have been installed in the helper node
 
 ---
 all:
@@ -128,19 +133,23 @@ all:
           dhcp: false
           ipv4: 192.168.10.31
 
-        example-exr1.ocp4.th:
+        example-ext1.ocp4.th:
           dhcp: false
           ipv4: 192.168.100.4
 
-        example-exr2.ocp4.th:
+        example-ext2.ocp4.th:
           dhcp: false
           ipv4: 192.168.100.5
-
 ...
+
 5. Download RHCOS ISO file (rhcos-4.x.z-x86_64-live.x86_64.iso) and put in /tmp
+
 6. Run playbook-multi.yml or playbook-single.yml
-* playbook-multi.yml --> for multiple NICs and will create as per total nodes defind in inventory.yml
-* playbook-single.yml --> for single NIC and will create 1 single ISO even put more than 1 nodes in inventory.yml
+# playbook-multi.yml --> for multiple NICs and will create as per total nodes defind in inventory.yml
+# playbook-single.yml --> for single NIC and will create 1 single ISO even put more than 1 nodes in inventory.yml
+
 7. Check /tmp for new created ISO
+
 8. Rename new created ISO as per nodes
+
 9. Ready to upload to vSphere
